@@ -6,11 +6,13 @@ on:
   pull_request:
     branches: [ main ]
 
+# … top unchanged …
+
 jobs:
   build_test_scan_deploy:
     runs-on: ubuntu-latest
     permissions:
-      contents: write   # commit lockfile
+      contents: write
       pull-requests: read
 
     steps:
@@ -25,13 +27,11 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      # Create a fresh lockfile that matches the new package.json
+      # Create/commit a fresh lockfile that matches package.json
       - name: Clean & npm install (write new lockfile)
         run: |
           rm -f package-lock.json
           npm install
-
-      # Commit the lockfile so future runs can use npm ci
       - name: Commit updated lockfile
         if: ${{ github.ref == 'refs/heads/main' }}
         run: |
@@ -39,21 +39,27 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add package-lock.json
-            git commit -m "chore(ci): regenerate package-lock.json for upgraded deps"
+            git commit -m "chore(ci): regenerate package-lock.json"
             git push
           fi
 
-      # From now on we can use npm ci deterministically
-      - name: Install deps
-        run: npm ci
+      # ---------- Security gate on production deps only ----------
+      - name: Install prod deps only
+        run: npm ci --omit=dev
 
-      # Security gate: fail only on production deps (what gets deployed)
       - name: npm audit (prod only, high+)
         run: npm audit --omit=dev --audit-level=high
 
-      # Run lint only if you actually have it configured; otherwise comment this step out
-      # - name: Lint
-      #   run: npm run lint
+      # ---------- Reinstall all deps for tests/build ----------
+      - name: Clean node_modules
+        run: rm -rf node_modules
+
+      - name: Install all deps
+        run: npm ci
+
+      # (optional) show versions while stabilizing
+      # - name: Show critical package versions
+      #   run: npm ls react-scripts webpack-dev-server @svgr/webpack
 
       - name: Test (Jest) with coverage thresholds
         run: npm test -- --coverage --watchAll=false
@@ -81,3 +87,4 @@ jobs:
           app-name: ${{ secrets.AZURE_FUNCTIONAPP_NAME }}
           package: ./build
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+
