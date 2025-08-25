@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Card from 'react-bootstrap/Card';
+import { Card } from 'react-bootstrap';   // <— v2 style import
 import axios from 'axios';
 
 // Child of Customers
@@ -22,7 +22,8 @@ export default class CustomerDetails extends Component {
   // Load customer details from JSON
   getCustomerDetails(id) {
     axios.get(`assets/samplejson/customer${id}.json`).then((response) => {
-      this.setState({ customerDetails: response }); // keep same shape you were using
+      // keep same shape you were using: response.data has the fields
+      this.setState({ customerDetails: response });
     });
   }
 
