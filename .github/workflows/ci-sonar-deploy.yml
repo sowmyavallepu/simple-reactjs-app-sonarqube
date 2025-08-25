@@ -50,4 +50,67 @@ jobs:
         run: npm audit --omit=dev --audit-level=high
 
       # ---------- Reinstall all deps for tests/build ----------
-      - n
+      - name: Clean node_modules
+        run: rm -rf node_modules
+
+      - name: Install all deps
+        run: npm ci
+
+      # ---------- Run tests and generate coverage ----------
+      - name: Test (Jest) – produce coverage
+        run: npm test -- --coverage --watchAll=false
+
+      # ---------- Enforce 95% line coverage without CRA overrides ----------
+      - name: Enforce 95% line coverage
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          function readJSON(p) { return JSON.parse(fs.readFileSync(p, 'utf8')); }
+          let pct = 0;
+          try {
+            if (fs.existsSync('./coverage/coverage-summary.json')) {
+              pct = readJSON('./coverage/coverage-summary.json').total.lines.pct;
+            } else if (fs.existsSync('./coverage/coverage-final.json')) {
+              const data = readJSON('./coverage/coverage-final.json');
+              let covered = 0, total = 0;
+              for (const f of Object.values(data)) {
+                if (f.lines) { covered += f.lines.covered; total += f.lines.total; }
+              }
+              pct = total ? (covered / total * 100) : 0;
+            } else {
+              console.error('Coverage files not found. Did tests run with --coverage?');
+              process.exit(1);
+            }
+            console.log('Line coverage:', pct.toFixed(2) + '%');
+            if (pct < 95) { console.error('❌ Coverage below 95%'); process.exit(1); }
+            console.log('✅ Coverage requirement met');
+          } catch (e) {
+            console.error('Failed to read/parse coverage files:', e.message);
+            process.exit(1);
+          }
+          NODE
+
+      # --- SonarQube scan (self-hosted) ---
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: SonarQube Quality Gate
+        uses: SonarSource/sonarqube-quality-gate-action@master
+        timeout-minutes: 10
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: Build React app
+        run: npm run build
+
+      - name: Deploy to Azure Functions
+        if: ${{ github.ref == 'refs/heads/main' }}
+        uses: Azure/functions-action@v1
+        with:
+          app-name: ${{ secrets.AZURE_FUNCTIONAPP_NAME }}
+          package: ./build
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
