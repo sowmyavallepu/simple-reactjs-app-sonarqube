@@ -1,7 +1,9 @@
-import { render } from '@testing-library/react';
+// src/App.test.js
+import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders without crashing', () => {
+test('shows the app header', async () => {
   render(<App />);
+  // Wait for something stable in the DOM
+  expect(await screen.findByText(/Simple React App/i)).toBeInTheDocument();
 });
-
