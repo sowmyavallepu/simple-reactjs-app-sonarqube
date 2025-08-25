@@ -1,7 +1,6 @@
 // src/setupTests.js
-import '@testing-library/jest-dom';
+// DO NOT import '@testing-library/jest-dom' (v6 is ESM and breaks CRA's Jest)
 
-// Make axios a *virtual* mock so Jest never resolves the real ESM package
 jest.mock(
   'axios',
   () => ({
@@ -10,7 +9,7 @@ jest.mock(
         return Promise.resolve({
           data: [
             { id: 1, name: 'Alice', email: 'a@ex.com', phone: '111-111-1111' },
-            { id: 2, name: 'Bob',   email: 'b@ex.com', phone: '222-222-2222' }
+            { id: 2, name: 'Bob',   email: 'b@ex.com', phone: '222-222-2222' },
           ],
         });
       }
@@ -32,5 +31,5 @@ jest.mock(
       });
     }),
   }),
-  { virtual: true } // <-- THIS is the key
+  { virtual: true }
 );
