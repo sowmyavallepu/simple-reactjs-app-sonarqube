@@ -3,7 +3,7 @@ import logo from './logo.svg';
 import './App.css';
 import Customers from './Customers';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import 'bootstrap/dist/css/bootstrap.min.css'; // ensure Bootstrap CSS is loaded
+import 'bootstrap/dist/css/bootstrap.min.css'; // make sure Bootstrap styles are loaded
 
 class App extends Component {
   render() {
