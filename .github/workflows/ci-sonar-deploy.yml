@@ -47,8 +47,9 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: npm audit (high and above)
-        run: npm audit --audit-level=high
+      # Security gate: fail only on production deps (what gets deployed)
+      - name: npm audit (prod only, high+)
+        run: npm audit --omit=dev --audit-level=high
 
       # Run lint only if you actually have it configured; otherwise comment this step out
       # - name: Lint
