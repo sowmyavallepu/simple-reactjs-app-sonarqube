@@ -7,20 +7,13 @@ import axios from 'axios';
 export default class Customers extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      selectedCustomer: 1,
-      customerList: null,
-    };
+    this.state = { selectedCustomer: 1, customerList: null };
   }
 
-  componentDidMount() {
-    this.getCustomerData();
-  }
+  componentDidMount() { this.getCustomerData(); }
 
-  // Get the Customer Data from json
   getCustomerData() {
     axios.get('assets/samplejson/customerlist.json').then((response) => {
-      // keep same shape you were using: response.data is the array
       this.setState({ customerList: response });
     });
   }
@@ -47,7 +40,6 @@ export default class Customers extends Component {
             </Card>
           ))}
         </div>
-
         <div className="col-md-6">
           <CustomerDetails val={this.state.selectedCustomer} />
         </div>
