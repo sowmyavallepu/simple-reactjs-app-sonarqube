@@ -1,9 +1,11 @@
-// src/App.test.js
 import { render, screen } from '@testing-library/react';
+
+// Stub out Customers so this test doesn't run async axios logic
+jest.mock('./Customers', () => () => <div data-testid="customers-stub" />);
+
 import App from './App';
 
-test('shows the app header', async () => {
+test('renders app header', () => {
   render(<App />);
-  // Wait for something stable in the DOM
-  expect(await screen.findByText(/Simple React App/i)).toBeInTheDocument();
+  expect(screen.getByText(/Simple React App/i)).toBeInTheDocument();
 });
