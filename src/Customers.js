@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import Card from 'react-bootstrap/Card';
-import Button from 'react-bootstrap/Button';
+import Card from 'react-bootstrap/Card';     // ✅ v2 import
+import Button from 'react-bootstrap/Button'; // ✅ v2 import
 import CustomerDetails from './CustomerDetails';
 import axios from 'axios';
 
