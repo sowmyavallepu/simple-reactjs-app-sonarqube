@@ -10,7 +10,7 @@ jobs:
   build_test_scan_deploy:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write   # 👈 changed to allow committing lockfile
       pull-requests: read
 
     steps:
@@ -25,39 +25,42 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      - name: Regenerate lockfile with npm@9
+      # --- Lockfile fix ---
+      - name: Clean & npm install (write new lockfile)
         run: |
           rm -f package-lock.json
-          npm install --package-lock-only
+          npm install
+
+      - name: Commit updated lockfile
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          if [ -n "$(git status --porcelain package-lock.json)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add package-lock.json
+            git commit -m "chore(ci): regenerate lockfile to match Node/npm"
+            git push
+          fi
 
       - name: Install deps
         run: npm ci
 
       # --- Security gate: fail fast on vulnerabilities ---
-      # Option A (built-in): fail on high/critical
       - name: npm audit (high and above)
         run: npm audit --audit-level=high
 
-      # Option B (stricter): audit-ci (uncomment to use instead of npm audit)
-      # - name: audit-ci (fail on any)
-      #   run: npx audit-ci --moderate
-
-      # --- Lint (optional but recommended, fail on any error/warning) ---
       - name: Lint
         run: npm run lint
 
-      # --- Unit tests with enforced 95% coverage ---
       - name: Test (Jest) with coverage thresholds
         run: npm test -- --coverage --watchAll=false
 
-      # --- SonarQube scan (self-hosted) ---
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-      # Wait for Quality Gate and fail if it’s not green
       - name: SonarQube Quality Gate
         uses: SonarSource/sonarqube-quality-gate-action@master
         timeout-minutes: 10
@@ -65,14 +68,11 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-      # --- Build production bundle ---
       - name: Build React app
         run: npm run build
 
-      # --- Deploy to Azure Functions (only after everything above passes) ---
-      # publish profile must be stored in secret: AZURE_FUNCTIONAPP_PUBLISH_PROFILE
       - name: Deploy to Azure Functions
-        if: ${{ github.ref == 'refs/heads/main' }} # deploy only from main
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: Azure/functions-action@v1
         with:
           app-name: ${{ secrets.AZURE_FUNCTIONAPP_NAME }}
