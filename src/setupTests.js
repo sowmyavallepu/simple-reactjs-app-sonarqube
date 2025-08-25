@@ -1,5 +1,5 @@
 // src/setupTests.js
-// DO NOT import '@testing-library/jest-dom' (v6 is ESM and breaks CRA's Jest)
+import '@testing-library/jest-dom';
 
 jest.mock(
   'axios',
@@ -9,7 +9,7 @@ jest.mock(
         return Promise.resolve({
           data: [
             { id: 1, name: 'Alice', email: 'a@ex.com', phone: '111-111-1111' },
-            { id: 2, name: 'Bob',   email: 'b@ex.com', phone: '222-222-2222' },
+            { id: 2, name: 'Bob',   email: 'b@ex.com', phone: '222-222-2222' }
           ],
         });
       }
@@ -26,8 +26,8 @@ jest.mock(
           country: 'Country',
           organization: 'Org',
           jobProfile: 'Dev',
-          additionalInfo: '-',
-        },
+          additionalInfo: '-'
+        }
       });
     }),
   }),
