@@ -10,26 +10,17 @@
     "react-dom": "^16.4.1",
     "react-router-dom": "^4.3.1",
     "react-scripts": "1.1.4"
-
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test --env=jsdom",
+    "test": "react-scripts test --env=jsdom --watchAll=false --coverage",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build"
   },
   "devDependencies": {
     "gh-pages": "^1.2.0"
-  }
-}
-
-{
-  "scripts": {
-    "test": "react-scripts test --watchAll=false",
-    "build": "react-scripts build",
-    "lint": "eslint src --max-warnings=0"
   },
   "jest": {
     "coverageReporters": ["json", "lcov", "text", "clover"],
@@ -45,4 +36,3 @@
     }
   }
 }
-
