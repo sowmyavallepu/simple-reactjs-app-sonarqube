@@ -25,6 +25,11 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
+      - name: Regenerate lockfile with npm@9
+        run: |
+          rm -f package-lock.json
+          npm install --package-lock-only
+
       - name: Install deps
         run: npm ci
 
